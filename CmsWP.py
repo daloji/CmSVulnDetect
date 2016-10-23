@@ -1,8 +1,14 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 import sys,urllib2,urllib,re
+import json
 from Cms import Cms
 from PageParser import PageParser
+
+VULN = {
+      'wpvulntheme':'https://wpvulndb.com/api/v2/themes/',
+      'wpvulnplugin':'https://wpvulndb.com/api/v2/plugins/'
+      }
 
 class CmsWP(Cms):
 	
@@ -57,11 +63,34 @@ class CmsWP(Cms):
 		self.secondDetectionWP()
 		self.verbose("    -  CMS Wordpress version " +self.version)
 		self.detection()
+		self.getVulnThemes()
 		self.showThemes()
 		self.showPlugins()
-	      
+		self.getVulnPlugins()
 	  
+	  def getVulnThemes(self):
+	      for themes in self.Theme_List:
+		  print "***"+themes+"****"
+		  try:
+		    response = urllib2.urlopen(VULN['wpvulntheme']+themes)
+		    data = json.load(response)
+		    print data
+		  except urllib2.HTTPError, e:
+		    self.verbose(e)
+		  #   
+		  #print data
 	  
+	  def getVulnPlugins(self):
+	      for plugin in self.Modules_List:
+		  print plugin
+		  try:
+		    response = urllib2.urlopen(VULN['wpvulnplugin']+plugin)
+		    data = json.load(response)   
+		    print data
+		  except urllib2.HTTPError, e:
+		    self.verbose(e)
+		  
+		  
 	  def getversion(self):
 	      try:
 		response = urllib2.Request(self.url+'/readme.html', None, headers=self.headers)
@@ -90,7 +119,7 @@ class CmsWP(Cms):
 
 
 if __name__ == "__main__":
-	cvedb = cmsWP(sys.argv[1:][0])
+	cvedb = CmsWP(sys.argv[1:][0])
 	cvedb.scan()
 	
 	  

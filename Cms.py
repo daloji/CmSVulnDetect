@@ -9,11 +9,13 @@ from PageParser import PageParser
 REGEX = {
     'Drupal'  : 'Drupal \s*?([\d.]+),',
     'WordPress' : 'Version\s*?([\d.]+)',
+    'Joomla' : 'Joomla\s*?([\d.]+)'
       }
 
 FILE  = {
     'Drupal'  : 'CHANGELOG.txt',
     'WordPress' : 'readme.html',
+    'Joomla' : 'README.txt'
       }
 
 class Cms:
@@ -38,7 +40,7 @@ class Cms:
         return
       
     def detection(self):
-	self.verbose("     *  Detection Thèmes, plugins et modules")
+	self.verbose("\t *  Detection Thèmes, plugins et modules")
 	try:
 	    response = urllib2.Request(self.url, None, headers=self.headers)
 	    data =  urllib2.urlopen(response).read().decode('utf-8')
@@ -46,13 +48,22 @@ class Cms:
 	    parse.feed(data)
 	    self.Modules_List=parse.getAllModules()
 	    self.Modules_List=sorted(list(set(self.Modules_List)))
+	    self.__deleteJQueryModules()
 	    self.Theme_List=parse.getAllThemes()
 	    self.Theme_List=sorted(list(set(self.Theme_List)))
-	    print self.Theme_List
 	except urllib2.HTTPError, e:
-	     self.verbose(e)
+	     self.error = e
 	     
-	     
+	      
+	      
+    def __deleteJQueryModules(self):
+      if len(self.Modules_List) > 0:
+	for module in self.Modules_List:
+	    if "jquery." in module:
+		self.Modules_List.remove(module)
+	
+	
+	
     def getVersion(self,type):
       """ recuperation de la version """
       file = None
@@ -74,10 +85,26 @@ class Cms:
 	     self.version=result[0]
 	  
       except urllib2.HTTPError, e:
-	  self.verbose(e)
+	  self.error = e
     
     def verbose(self,msg):
 	sys.stderr.write(" %s\n" % (msg))
+	
+	
+    def showThemes(self):
+      if len(self.Theme_List)>0:
+	theme =""
+	for thm in self.Theme_List:
+	     theme = theme + "  " + thm
+	     
+	self.verbose("\t -  themes[*]  " +theme)  
 
-
+    
+    def showPlugins(self):
+      if len(self.Modules_List)>0:
+	module =""
+	for modl in self.Modules_List:
+	     module = module + "  " + modl
+	     
+	self.verbose("\t -  modules[*]  " +module)  
    
