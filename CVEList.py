@@ -137,7 +137,3 @@ class CVEList(object):
          sys.stderr.write(" %s\n" % (msg))
     
 
-if __name__ == "__main__":
-	cvedb = CVEList()
-	xml = cvedb.parseInput()
-	cvedb.updateDB(xml,'Drupal')
